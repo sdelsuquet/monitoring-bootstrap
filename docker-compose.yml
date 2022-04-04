@@ -1,12 +1,16 @@
 version: '3'
 
+  ###############################################################
+  #                 services                                    #
+  ###############################################################
 services:
 
   prometheus:
     image: prom/prometheus:v2.34.0
-    container_name: prometheus
-    deploy:
-      replicas: 1
+    container_name: monitoring-prometheus
+    hostname: monitoring-prometheus
+    # deploy:
+    #   replicas: 1
     volumes:
       - prometheus-data:/prometheus
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
@@ -19,9 +23,11 @@ services:
 
   alertmanager:
     image: prom/alertmanager:v0.24.0
-    container_name: alertmanager
-    deploy:
-      replicas: 1
+    container_name: monitoring-alertmanager
+    hostname: monitoring-alertmanager
+    # deploy:
+    #   replicas: 1
+    restart: unless-stopped
     volumes:
       - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
       - ./alertmanager/templates/default.tmpl:/etc/alertmanager/templates/default.tmpl
@@ -31,13 +37,15 @@ services:
 
   grafana:
     image: grafana/grafana:8.4.4
-    container_name: grafana
+    container_name: monitoring-grafana
+    hostname: monitoring-grafana
     environment:
       - GF_PATHS_CONFIG=/etc/grafana/grafana.ini
-    deploy:
-      replicas: 1
+    # deploy:
+    #   replicas: 1
     depends_on:
       - prometheus
+    restart: unless-stopped
     volumes:
       - grafana-data:/var/lib/grafana
       - ./grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
@@ -48,20 +56,27 @@ services:
 
   blackbox:
     image: prom/blackbox-exporter:v0.20.0-rc.0
-    container_name: blackbox_exporter
-    deploy:
-      replicas: 1
+    container_name: monitoring-blackbox-exporter
+    hostname: monitoring-blackbox-exporter
+    # deploy:
+    #   replicas: 1
+    restart: unless-stopped
     volumes:
     - ./blackbox:/config
     network_mode: "host"
 
   node_exporter:
     image: prom/node-exporter:v1.3.1
-    container_name: node_exporter
-    deploy:
-      replicas: 1
+    container_name: monitoring-node-exporter
+    hostname: monitoring-node-exporter
+    # deploy:
+    #   replicas: 1
+    restart: unless-stopped
     network_mode: "host"
 
+  ###############################################################
+  #                  volumes                                    #
+  ###############################################################
 volumes:
   prometheus-data:
   grafana-data:
